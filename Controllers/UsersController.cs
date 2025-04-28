@@ -43,19 +43,36 @@ namespace _20250425_API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, User user)
         {
-            if (id != user.Id) return BadRequest();
-            _context.Entry(user).State = EntityState.Modified;
+            if (id != user.Id)
+            {
+                return BadRequest();
+            }
+
+            //先查使用者
+            var existingUser = await _context.Users.FindAsync(id);
+            if (existingUser == null)
+            {
+                return NotFound();
+            }
+
+            //更新需修改欄位
+            existingUser.Name = user.Name;
+
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Users.Any(e => e.Id == id)) return NotFound();
+                if (!_context.Users.Any(e => e.Id == id))
+                    return NotFound();
                 throw;
             }
+
             return NoContent();
         }
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(string id)
